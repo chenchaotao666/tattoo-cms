@@ -23,12 +23,6 @@ export default [
     ],
   },
   {
-    path: '/welcome',
-    name: 'welcome',
-    icon: 'smile',
-    component: './Welcome',
-  },
-  {
     path: '/admin',
     name: 'admin',
     icon: 'crown',
@@ -46,20 +40,29 @@ export default [
     ],
   },
   {
-    name: 'list.table-list',
-    icon: 'table',
-    path: '/list',
-    component: './table-list',
-  },
-  {
     name: '内容管理',
     icon: 'folder',
     path: '/content',
     routes: [
       {
+        name: '图片管理',
+        path: '/content/images',
+        component: './images',
+      },
+      {
+        name: '用户图片管理',
+        path: '/content/user-images',
+        component: './user-images',
+      },
+      {
         name: '分类管理',
         path: '/content/categories',
         component: './categories',
+      },
+      {
+        name: '标签管理',
+        path: '/content/tags',
+        component: './tags',
       },
       {
         name: '样式管理',
@@ -72,21 +75,6 @@ export default [
         component: './ideas',
       },
       {
-        name: '图片管理',
-        path: '/content/images',
-        component: './images',
-      },
-      {
-        name: '用户图片管理',
-        path: '/content/user-images',
-        component: './user-images',
-      },
-      {
-        name: '标签管理',
-        path: '/content/tags',
-        component: './tags',
-      },
-      {
         name: '博客管理',
         path: '/content/posts',
         component: './posts',
@@ -95,7 +83,7 @@ export default [
   },
   {
     path: '/',
-    redirect: '/welcome',
+    redirect: '/content/images',
   },
   {
     path: '*',
