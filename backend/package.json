@@ -1,0 +1,44 @@
+{
+  "name": "tattoo-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "build": "npm run check:deps",
+    "test:minio": "node -e \"const { Client } = require('minio'); require('dotenv').config(); const { MINIO_CONFIG } = require('./config/storage.config.js'); async function test() { try { const endpoint = MINIO_CONFIG.ENDPOINT.replace('http://', '').replace('https://', ''); const [host, port] = endpoint.split(':'); const minioClient = new Client({ endPoint: host, port: parseInt(port) || 9000, useSSL: MINIO_CONFIG.USE_SSL, accessKey: MINIO_CONFIG.ACCESS_KEY_ID, secretKey: MINIO_CONFIG.SECRET_ACCESS_KEY }); const bucketExists = await minioClient.bucketExists(MINIO_CONFIG.BUCKET_NAME); console.log('✅ MinIO连接测试成功!'); console.log('端点:', MINIO_CONFIG.ENDPOINT); console.log('存储桶:', MINIO_CONFIG.BUCKET_NAME, bucketExists ? '(存在)' : '(不存在)'); } catch (error) { console.error('❌ MinIO连接失败:', error.message); process.exit(1); } } test();\"",
+    "check:deps": "npm audit --audit-level=moderate",
+    "build:prod": "npm install --only=production",
+    "prebuild": "echo 'Building backend...'",
+    "postbuild": "echo 'Backend build completed successfully!'",
+    "pm2:start": "pm2 start ecosystem.config.js",
+    "pm2:start:prod": "pm2 start ecosystem.config.js --env production",
+    "pm2:restart": "pm2 restart coloring-book-backend",
+    "pm2:stop": "pm2 stop coloring-book-backend",
+    "pm2:delete": "pm2 delete coloring-book-backend",
+    "pm2:logs": "pm2 logs coloring-book-backend",
+    "pm2:monit": "pm2 monit"
+  },
+  "dependencies": {
+    "axios": "^1.11.0",
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "form-data": "^4.0.3",
+    "fs-extra": "^11.1.1",
+    "jsonwebtoken": "^9.0.2",
+    "minio": "^7.1.3",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.14.1",
+    "node-fetch": "^2.7.0",
+    "replicate": "^0.29.4",
+    "sharp": "^0.33.5",
+    "uuid": "^9.0.1",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

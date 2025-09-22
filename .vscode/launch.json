@@ -1,0 +1,20 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Backend (Dev Mode with Auto-Refresh)",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/backend/node_modules/nodemon/bin/nodemon.js",
+            "args": ["--inspect", "src/server.js"],
+            "cwd": "${workspaceFolder}/backend",
+            "console": "integratedTerminal",
+            "env": {
+                "NODE_ENV": "development"
+            },
+            "restart": true,
+            "runtimeExecutable": "node",
+            "skipFiles": ["<node_internals>/**"]
+        }
+    ]
+}
