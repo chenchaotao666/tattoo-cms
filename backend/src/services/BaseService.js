@@ -37,15 +37,23 @@ class BaseService {
     // 标准化过滤参数
     normalizeFilters(query) {
         const filters = {};
-        
-        // 排除分页和排序参数
-        const excludeParams = ['currentPage', 'pageSize', 'sortBy', 'sortOrder'];
-        
+
+        // 排除分页和排序参数，以及时间范围参数
+        const excludeParams = ['currentPage', 'pageSize', 'sortBy', 'sortOrder', 'createdAtStart', 'createdAtEnd'];
+
         Object.entries(query).forEach(([key, value]) => {
             if (!excludeParams.includes(key) && value !== undefined && value !== '') {
                 filters[key] = value;
             }
         });
+
+        // 处理时间范围查询
+        if (query.createdAtStart || query.createdAtEnd) {
+            filters.createdAtRange = {
+                start: query.createdAtStart,
+                end: query.createdAtEnd
+            };
+        }
 
         return filters;
     }
