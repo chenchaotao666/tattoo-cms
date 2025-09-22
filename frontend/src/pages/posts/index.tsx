@@ -110,6 +110,11 @@ const Posts: React.FC = () => {
     {
       title: '标题',
       dataIndex: 'title',
+      search: {
+        transform: (value: string) => {
+          return { title: value };
+        },
+      },
       render: (dom, entity) => {
         const displayTitle = entity.title?.en || entity.title?.zh || '未命名';
         return (

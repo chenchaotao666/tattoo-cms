@@ -882,43 +882,55 @@ class ImageService extends BaseService {
         try {
             const { tagIds, ...imageData } = data;
 
-            // 检查是否是Replicate图片URL，如果是则下载保存到Minio（与create方法相同的逻辑）
-            if (imageData.tattooUrl && this.isReplicateUrl(imageData.tattooUrl)) {
-                console.log('Detected Replicate URL in update, downloading and saving to Minio...');
+            // 获取现有图片数据以比较tattooUrl
+            const existingImage = await this.getById(id);
+            if (!existingImage) {
+                throw new Error('Image not found');
+            }
 
-                // 导入ImageGenerateService来使用downloadAndSaveImages方法
-                const ImageGenerateService = require('./ImageGenerateService');
-                const imageGenerateService = new ImageGenerateService();
+            // 只有当tattooUrl与现有的不同时才处理
+            if (imageData.tattooUrl && imageData.tattooUrl !== existingImage.tattooUrl) {
+                // 检查是否是Replicate图片URL，如果是则下载保存到Minio
+                if (this.isReplicateUrl(imageData.tattooUrl)) {
+                    console.log('Detected Replicate URL in update, downloading and saving to Minio...');
 
-                try {
-                    // 生成ID用于下载保存
-                    const generationId = imageGenerateService.generateId();
-                    const batchId = imageGenerateService.generateId();
+                    // 导入ImageGenerateService来使用downloadAndSaveImages方法
+                    const ImageGenerateService = require('./ImageGenerateService');
+                    const imageGenerateService = new ImageGenerateService();
 
-                    // 下载并保存到Minio
-                    const savedImages = await imageGenerateService.downloadAndSaveImages(
-                        [imageData.tattooUrl],
-                        generationId,
-                        batchId,
-                        imageData.slug, // 传递slug
-                        imageData.name?.en // 传递英文名称
-                    );
+                    try {
+                        // 生成ID用于下载保存
+                        const generationId = imageGenerateService.generateId();
+                        const batchId = imageGenerateService.generateId();
 
-                    if (savedImages.length > 0 && !savedImages[0].error) {
-                        // 使用Minio路径替换原URL
-                        imageData.tattooUrl = savedImages[0].minioPath;
-                        console.log(`Replicate image saved to Minio: ${imageData.tattooUrl}`);
-                    } else {
-                        console.error('Failed to save Replicate image:', savedImages[0]?.error);
-                        // 保存失败仍继续，使用原URL
+                        // 下载并保存到Minio
+                        const savedImages = await imageGenerateService.downloadAndSaveImages(
+                            [imageData.tattooUrl],
+                            generationId,
+                            batchId,
+                            imageData.slug, // 传递slug
+                            imageData.name?.en // 传递英文名称
+                        );
+
+                        if (savedImages.length > 0 && !savedImages[0].error) {
+                            // 使用Minio路径替换原URL
+                            imageData.tattooUrl = savedImages[0].minioPath;
+                            console.log(`Replicate image saved to Minio: ${imageData.tattooUrl}`);
+                        } else {
+                            console.error('Failed to save Replicate image:', savedImages[0]?.error);
+                            // 保存失败仍继续，使用原URL
+                        }
+
+                        // 将batchId添加到图片数据中
+                        imageData.batchId = batchId;
+                    } catch (downloadError) {
+                        console.error('Error downloading Replicate image:', downloadError.message);
+                        // 下载失败仍继续，使用原URL
                     }
-
-                    // 将batchId添加到图片数据中
-                    imageData.batchId = batchId;
-                } catch (downloadError) {
-                    console.error('Error downloading Replicate image:', downloadError.message);
-                    // 下载失败仍继续，使用原URL
                 }
+            } else if (imageData.tattooUrl === existingImage.tattooUrl) {
+                // 如果tattooUrl相同，不需要更新，从数据中移除避免不必要的处理
+                delete imageData.tattooUrl;
             }
 
             // 更新图片记录

@@ -68,6 +68,19 @@ class BaseModel {
 
         Object.entries(filters).forEach(([key, value]) => {
             if (value !== undefined && value !== null && value !== '') {
+                // 特殊处理时间范围查询
+                if (key === 'createdAtRange') {
+                    if (value.start) {
+                        conditions.push(`createdAt >= ?`);
+                        values.push(value.start);
+                    }
+                    if (value.end) {
+                        conditions.push(`createdAt <= ?`);
+                        values.push(value.end);
+                    }
+                    return;
+                }
+
                 const sanitizedKey = sanitizeField(key);
                 if (!sanitizedKey) return; // 跳过无效字段名
 
@@ -88,6 +101,16 @@ class BaseModel {
                     // 模糊查询
                     conditions.push(`${sanitizedKey} LIKE ?`);
                     values.push(value.replace(/\*/g, '%'));
+                } else if (typeof value === 'string') {
+                    // 对于title字段，同时搜索JSON中的en和zh字段
+                    if (sanitizedKey === 'title') {
+                        conditions.push(`(JSON_UNQUOTE(JSON_EXTRACT(${sanitizedKey}, '$.en')) LIKE ? OR JSON_UNQUOTE(JSON_EXTRACT(${sanitizedKey}, '$.zh')) LIKE ?)`);
+                        values.push(`%${value}%`, `%${value}%`);
+                    } else {
+                        // 普通字符串字段使用模糊匹配
+                        conditions.push(`${sanitizedKey} LIKE ?`);
+                        values.push(`%${value}%`);
+                    }
                 } else {
                     // 精确匹配
                     conditions.push(`${sanitizedKey} = ?`);
