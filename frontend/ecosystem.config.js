@@ -2,8 +2,8 @@ module.exports = {
   apps: [
     {
       name: 'tattoo-cms-frontend-dev',
-      script: 'node_modules/@umijs/max/dist/cli.js',
-      args: 'dev',
+      script: 'npm',
+      args: 'run start:dev',
       instances: 1,
       autorestart: true,
       watch: false,
