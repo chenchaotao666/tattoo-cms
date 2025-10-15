@@ -45,7 +45,7 @@ ${text}`;
                         }
                     ],
                     temperature: 0.3,
-                    max_tokens: 1000
+                    max_tokens: 3000
                 })
             });
 
@@ -229,9 +229,14 @@ ${combinedText}`;
         // 解析编号格式的翻译结果
         const translatedTexts = this.parseNumberedResponse(translatedContent, texts.length);
 
-        // 确保返回的数量与输入一致
-        if (translatedTexts.length !== texts.length) {
-            throw new Error(`Translation count mismatch: expected ${texts.length}, got ${translatedTexts.length}`);
+        // 容错处理：如果翻译数量不够，用原文填充
+        while (translatedTexts.length < texts.length) {
+            translatedTexts.push(texts[translatedTexts.length]);
+        }
+
+        // 如果翻译数量过多，截取到正确长度
+        if (translatedTexts.length > texts.length) {
+            translatedTexts.splice(texts.length);
         }
 
         return translatedTexts;
