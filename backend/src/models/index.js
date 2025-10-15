@@ -4,6 +4,7 @@ const Image = require('./Image');
 const Style = require('./Style');
 const Post = require('./Post');
 const BaseModel = require('./BaseModel');
+const PromptTemplate = require('./PromptTemplate');
 
 // 简单模型类（使用BaseModel的基础功能）
 class Idea extends BaseModel {
@@ -272,7 +273,8 @@ function createModels(db) {
         Tag: new Tag(db),
         Post: new Post(db),
         Recharge: new Recharge(db),
-        ImageReport: new ImageReport(db)
+        ImageReport: new ImageReport(db),
+        PromptTemplate: new PromptTemplate(db)
     };
 }
 
@@ -287,5 +289,6 @@ module.exports = {
     Post,
     Recharge,
     ImageReport,
+    PromptTemplate,
     BaseModel
 };

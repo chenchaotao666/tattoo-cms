@@ -129,6 +129,56 @@ function createImageRoutes(app) {
         }
     });
 
+    // POST /api/images/generate-prompt - 使用完整prompt生成纹身图片（不保存到MinIO）
+    router.post('/generate-prompt', optionalAuth, validateBody(['prompt']), async (req, res) => {
+        try {
+            const {
+                prompt,
+                width = 1024,
+                height = 1024,
+                num_outputs = 1,
+                scheduler = "K_EULER",
+                guidance_scale = 7.5,
+                num_inference_steps = 50,
+                lora_scale = 0.6,
+                refine = "expert_ensemble_refiner",
+                high_noise_frac = 0.9,
+                apply_watermark = false,
+                negative_prompt = '',
+                seed,
+            } = req.body;
+
+            // 构建参数对象 - 不进行prompt增强处理
+            const params = {
+                prompt,
+                width: parseInt(width),
+                height: parseInt(height),
+                num_outputs: parseInt(num_outputs),
+                scheduler,
+                guidance_scale: parseFloat(guidance_scale),
+                num_inference_steps: parseInt(num_inference_steps),
+                lora_scale: parseFloat(lora_scale),
+                refine,
+                high_noise_frac: parseFloat(high_noise_frac),
+                apply_watermark: Boolean(apply_watermark),
+                negative_prompt: negative_prompt,
+                skipEnhancement: true, // 跳过prompt增强处理
+            };
+
+            // 如果提供了种子，添加到参数中
+            if (seed !== undefined) {
+                params.seed = parseInt(seed);
+            }
+
+            // 启动异步生成任务
+            const result = await imageGenerateService.generateTattooAsync(params);
+            res.json(result);
+        } catch (error) {
+            console.error('Generate prompt tattoo error:', error);
+            res.status(500).json(imageGenerateService.formatResponse(false, null, error.message));
+        }
+    });
+
 
     // 获取图片统计信息
     router.get('/stats', async (req, res) => {

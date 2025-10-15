@@ -89,12 +89,21 @@ class ImageGenerateService {
                 throw new Error('REPLICATE_API_TOKEN environment variable is required');
             }
 
+            // 决定是否使用增强的prompt
+            let finalPrompt;
+            if (params.skipEnhancement === true) {
+                // 如果跳过增强，直接使用原始prompt
+                finalPrompt = params.prompt;
+            } else {
+                // 正常流程，增强prompt
+                finalPrompt = await this.enhancePrompt(params.prompt, params.style, params.isColor, params.styleNote);
+            }
+
             // 合并参数
             const input = {
                 ...this.defaultParams,
                 ...params,
-                // 确保 prompt 包含 TOK 关键词以激活模型特性
-                prompt: await this.enhancePrompt(params.prompt, params.style, params.isColor, params.styleNote)
+                prompt: finalPrompt
             };
 
             // 验证参数范围
@@ -102,7 +111,7 @@ class ImageGenerateService {
 
             // 启动异步生成任务
             const result = await this.startAsyncGeneration(input);
-            
+
             return this.formatResponse(true, result, 'Generation task started successfully');
         } catch (error) {
             throw new Error(`Start generation task failed: ${error.message}`);

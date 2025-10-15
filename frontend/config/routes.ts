@@ -79,6 +79,11 @@ export default [
         path: '/content/posts',
         component: './posts',
       },
+      {
+        name: '提示词模板调试',
+        path: '/content/prompt-templates',
+        component: './prompt-templates',
+      },
     ],
   },
   {

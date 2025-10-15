@@ -200,6 +200,20 @@ CREATE TABLE posts (
   updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+-- 创建 prompt_templates 表（提示词模板）
+CREATE TABLE prompt_templates (
+  id VARCHAR(36) PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,                 -- 模板名称
+  prompt TEXT,                           -- 模板描述
+  isDefault BOOLEAN DEFAULT FALSE,            -- 是否为默认模板
+  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  -- 添加索引
+  INDEX idx_prompt_templates_is_default (isDefault),
+  INDEX idx_prompt_templates_name (name)
+);
+
 -- ========================================
 -- 性能优化索引
 -- ========================================

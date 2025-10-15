@@ -208,3 +208,25 @@ export async function getUserGeneratedImages(params?: any) {
     params,
   });
 }
+
+// 使用完整prompt生成纹身图片（不保存到MinIO）
+export async function generateTattooByPrompt(data: {
+  prompt: string;
+  width?: number;
+  height?: number;
+  num_outputs?: number;
+  scheduler?: string;
+  guidance_scale?: number;
+  num_inference_steps?: number;
+  lora_scale?: number;
+  refine?: string;
+  high_noise_frac?: number;
+  apply_watermark?: boolean;
+  negative_prompt?: string;
+  seed?: number;
+}): Promise<GenerateTattooResponse> {
+  return request(`${API_BASE}/generate-prompt`, {
+    method: 'POST',
+    data,
+  });
+}

@@ -23,7 +23,9 @@ const pool = mysql.createPool({
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
-    timezone: '+00:00'
+    timezone: '+00:00',
+    charset: 'utf8mb4',
+    collation: 'utf8mb4_unicode_ci'
 });
 
 // 将数据库连接池挂载到app上，供其他模块使用
@@ -42,6 +44,7 @@ const createReportRoutes = require('./routes/reportRoutes');
 const createTranslateRoutes = require('./routes/translateRoutes');
 const createUploadRoutes = require('./routes/uploadRoutes');
 const createUserImageRoutes = require('./routes/userImageRoutes');
+const createPromptTemplateRoutes = require('./routes/promptTemplateRoutes');
 
 // 注册路由
 app.use('/api/users', createUserRoutes(app));
@@ -56,6 +59,7 @@ app.use('/api/reports', createReportRoutes(app));
 app.use('/api/translate', createTranslateRoutes());
 app.use('/api/upload', createUploadRoutes(app));
 app.use('/api/user-images', createUserImageRoutes(app));
+app.use('/api/prompt-templates', createPromptTemplateRoutes(app));
 
 // 测试路由
 app.get('/test-route', (req, res) => {
