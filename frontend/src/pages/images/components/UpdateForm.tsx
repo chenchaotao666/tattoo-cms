@@ -593,10 +593,10 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ onOk, trigger, values }) => {
     // 为每种语言设置初始值
     activeLanguages.forEach(lang => {
       // 即使原始值为null或undefined，也要设置字段，避免表单验证失败
-      initialValues[`name_${lang}`] = values?.name?.[lang as 'en' | 'zh'] || '';
-      initialValues[`description_${lang}`] = values?.description?.[lang as 'en' | 'zh'] || '';
-      initialValues[`prompt_${lang}`] = values?.prompt?.[lang as 'en' | 'zh'] || '';
-      initialValues[`additionalInfo_${lang}`] = values?.additionalInfo?.[lang as 'en' | 'zh'] || '';
+      initialValues[`name_${lang}`] = values?.name?.[lang as keyof typeof values.name] || '';
+      initialValues[`description_${lang}`] = values?.description?.[lang as keyof typeof values.description] || '';
+      initialValues[`prompt_${lang}`] = values?.prompt?.[lang as keyof typeof values.prompt] || '';
+      initialValues[`additionalInfo_${lang}`] = values?.additionalInfo?.[lang as keyof typeof values.additionalInfo] || '';
     });
 
     console.log('getInitialValues result:', initialValues);

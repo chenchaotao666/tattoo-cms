@@ -24,7 +24,7 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ onOk, trigger, values }) => {
   
   // 从现有数据中提取支持的语言
   const getActiveLanguages = () => {
-    const languages = new Set(['en']); // 英语是必须的
+    const languages = new Set(['en', 'zh']); // 英语和中文是必须的
     if (values.title) {
       Object.keys(values.title).forEach(lang => languages.add(lang));
     }

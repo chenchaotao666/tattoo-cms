@@ -4,6 +4,7 @@ import { request } from '@umijs/max';
 const LANGUAGE_MAPPING: Record<string, string> = {
   en: 'English',
   zh: 'Chinese',
+  tw: 'Traditional Chinese',
   ja: 'Japanese',
   ko: 'Korean',
   es: 'Spanish',

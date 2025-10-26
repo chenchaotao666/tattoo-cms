@@ -8,6 +8,7 @@ import { translateText } from '@/services/translation';
 export const SUPPORTED_LANGUAGES = [
   { value: 'en', label: 'English', flag: '🇺🇸' },
   { value: 'zh', label: '中文', flag: '🇨🇳' },
+  { value: 'tw', label: '繁體中文', flag: '🇹🇼' },
   { value: 'ja', label: '日本語', flag: '🇯🇵' },
   { value: 'ko', label: '한국어', flag: '🇰🇷' },
   { value: 'es', label: 'Español', flag: '🇪🇸' },
@@ -334,6 +335,7 @@ const MultiLanguageForm: React.FC<MultiLanguageFormProps> = ({
                 </span>
               ),
               children: generateTabContent(lang),
+              forceRender: true, // 强制渲染所有tab内容，确保表单字段被初始化
             };
           })}
           style={{ minHeight: 300 }}
