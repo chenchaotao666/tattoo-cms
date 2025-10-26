@@ -5,9 +5,6 @@ import { LinkOutlined } from '@ant-design/icons';
 import React, { useRef, useState, useEffect } from 'react';
 import { updateImage, addImage, generateTattooAsync, getGenerationStatus, completeGeneration, type GenerateTattooRequest } from '@/services/images';
 import { uploadImageOnSubmit } from '@/services/upload';
-import { queryCategories } from '@/services/categories';
-import { queryStyles } from '@/services/styles';
-import { queryTags } from '@/services/tags';
 import { generateMinIOUrl } from '@/utils/config';
 import MultiLanguageForm from '@/components/MultiLanguageForm';
 import ImageUpload from '@/components/ImageUpload';
@@ -17,6 +14,9 @@ type UpdateFormProps = {
   onOk?: () => void;
   trigger: React.ReactElement;
   values: ImageItem | null; // null 表示新增模式
+  categories: any[];
+  styles: any[];
+  tags: any[];
 };
 
 // 图片表单字段配置
@@ -27,7 +27,7 @@ const IMAGE_FIELDS = [
   { key: 'additionalInfo', label: '额外信息', type: 'textarea' as const, rows: 2 },
 ];
 
-const UpdateForm: React.FC<UpdateFormProps> = ({ onOk, trigger, values }) => {
+const UpdateForm: React.FC<UpdateFormProps> = ({ onOk, trigger, values, categories, styles, tags }) => {
   const formRef = useRef<ProFormInstance>(null);
   const [messageApi, contextHolder] = message.useMessage();
   
@@ -51,11 +51,6 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ onOk, trigger, values }) => {
 
   const [activeLanguages, setActiveLanguages] = useState<string[]>(getActiveLanguages());
 
-  // 选项数据
-  const [categories, setCategories] = useState<any[]>([]);
-  const [styles, setStyles] = useState<any[]>([]);
-  const [tags, setTags] = useState<any[]>([]);
-
   // AI生成相关状态
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
@@ -63,12 +58,6 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ onOk, trigger, values }) => {
   const [generatedImages, setGeneratedImages] = useState<string[]>([]);
   const [selectedGeneratedImage, setSelectedGeneratedImage] = useState<string>('');
 
-  // 加载分类、样式和标签数据
-  useEffect(() => {
-    loadCategories();
-    loadStyles();
-    loadTags();
-  }, []);
 
   // 重置所有状态的函数
   const resetAllStates = () => {
@@ -126,51 +115,6 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ onOk, trigger, values }) => {
     }
   }, [values]);
 
-  const loadCategories = async () => {
-    try {
-      const result = await queryCategories({ current: 1, pageSize: 1000 });
-      if (result.success) {
-        setCategories(result.data.map((item: any) => ({
-          label: `${item.name?.en || 'Unnamed'} / ${item.name?.zh || '未命名'}`,
-          value: item.id,
-        })));
-      }
-    } catch (error) {
-      console.error('Load categories error:', error);
-    }
-  };
-
-  const loadStyles = async () => {
-    try {
-      const result = await queryStyles({ current: 1, pageSize: 1000 });
-      if (result.success) {
-        setStyles(result.data.map((item: any) => ({
-          label: `${item.title?.en || 'Unnamed'} / ${item.title?.zh || '未命名'}`,
-          value: item.id,
-          title: item.title,
-          description: item.description,
-          prompt: item.prompt,
-          originalData: item,
-        })));
-      }
-    } catch (error) {
-      console.error('Load styles error:', error);
-    }
-  };
-
-  const loadTags = async () => {
-    try {
-      const result = await queryTags({ current: 1, pageSize: 1000 });
-      if (result.success) {
-        setTags(result.data.map((item: any) => ({
-          label: `${item.name?.en || 'Unnamed'} / ${item.name?.zh || '未命名'}`,
-          value: item.id,
-        })));
-      }
-    } catch (error) {
-      console.error('Load tags error:', error);
-    }
-  };
 
   // 合并多语言字段的工具函数
   const mergeLanguageFields = (fieldPrefix: string, formValues: any) => {

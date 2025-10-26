@@ -12,8 +12,11 @@ import {
 import { FormattedMessage, useIntl, useRequest } from '@umijs/max';
 import { Button, Drawer, message, Image, Modal, Tag, Space } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { removeImage, queryImages } from '@/services/images';
+import { queryCategories } from '@/services/categories';
+import { queryStyles } from '@/services/styles';
+import { queryTags } from '@/services/tags';
 import UpdateForm from './components/UpdateForm';
 import { generateMinIOUrl } from '@/utils/config';
 
@@ -50,8 +53,66 @@ const Images: React.FC = () => {
   const [currentRow, setCurrentRow] = useState<ImageItem>();
   const [selectedRowsState, setSelectedRows] = useState<ImageItem[]>([]);
 
+  // 静态数据状态
+  const [categories, setCategories] = useState<any[]>([]);
+  const [styles, setStyles] = useState<any[]>([]);
+  const [tags, setTags] = useState<any[]>([]);
+
   const intl = useIntl();
   const [messageApi, contextHolder] = message.useMessage();
+
+  // 加载静态数据
+  useEffect(() => {
+    loadCategories();
+    loadStyles();
+    loadTags();
+  }, []);
+
+  const loadCategories = async () => {
+    try {
+      const result = await queryCategories({ current: 1, pageSize: 1000 });
+      if (result.success) {
+        setCategories(result.data.map((item: any) => ({
+          label: `${item.name?.en || 'Unnamed'} / ${item.name?.zh || '未命名'}`,
+          value: item.id,
+        })));
+      }
+    } catch (error) {
+      console.error('Load categories error:', error);
+    }
+  };
+
+  const loadStyles = async () => {
+    try {
+      const result = await queryStyles({ current: 1, pageSize: 1000 });
+      if (result.success) {
+        setStyles(result.data.map((item: any) => ({
+          label: `${item.title?.en || 'Unnamed'} / ${item.title?.zh || '未命名'}`,
+          value: item.id,
+          title: item.title,
+          description: item.description,
+          prompt: item.prompt,
+          originalData: item,
+        })));
+      }
+    } catch (error) {
+      console.error('Load styles error:', error);
+    }
+  };
+
+  const loadTags = async () => {
+    try {
+      const result = await queryTags({ current: 1, pageSize: 1000 });
+      if (result.success) {
+        setTags(result.data.map((item: any) => ({
+          label: `${item.name?.en || 'Unnamed'} / ${item.name?.zh || '未命名'}`,
+          value: item.id,
+        })));
+      }
+    } catch (error) {
+      console.error('Load tags error:', error);
+    }
+  };
 
   const { run: delRun, loading } = useRequest(removeImage, {
     manual: true,
@@ -254,6 +315,9 @@ const Images: React.FC = () => {
           key="edit"
           onOk={actionRef.current?.reload}
           values={record}
+          categories={categories}
+          styles={styles}
+          tags={tags}
         />,
         <a 
           key="delete" 
@@ -320,6 +384,9 @@ const Images: React.FC = () => {
             }
             onOk={() => actionRef.current?.reload?.()}
             values={null} // null 表示新增模式
+            categories={categories}
+            styles={styles}
+            tags={tags}
           />,
         ]}
         request={queryImages}
