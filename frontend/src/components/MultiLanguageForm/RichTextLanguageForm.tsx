@@ -10,6 +10,7 @@ import SimpleQuill from '@/components/RichTextEditor/SimpleQuill';
 export const SUPPORTED_LANGUAGES = [
   { value: 'en', label: 'English', flag: '🇺🇸' },
   { value: 'zh', label: '中文', flag: '🇨🇳' },
+  { value: 'tw', label: '繁體中文', flag: '🇹🇼' },
   { value: 'ja', label: '日本語', flag: '🇯🇵' },
   { value: 'ko', label: '한국어', flag: '🇰🇷' },
   { value: 'es', label: 'Español', flag: '🇪🇸' },
