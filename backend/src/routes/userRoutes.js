@@ -73,14 +73,35 @@ function createUserRoutes(app) {
         try {
             const { id } = req.params;
             const stats = await userService.getUserStats(id);
-            
+
             if (!stats) {
                 return res.status(404).json(userService.formatResponse(false, null, 'User not found'));
             }
-            
+
             res.json(userService.formatResponse(true, stats, 'User stats retrieved successfully'));
         } catch (error) {
             console.error('Get user stats error:', error);
+            res.status(500).json(userService.formatResponse(false, null, error.message));
+        }
+    });
+
+    // GET /api/users/:id/recharges - 获取用户充值记录
+    router.get('/:id/recharges', validateUUID, async (req, res) => {
+        try {
+            const { id } = req.params;
+            const { currentPage = 1, pageSize = 10 } = req.query;
+
+            // 使用充值模型查询
+            const models = createModels(app.locals.db);
+
+            const result = await models.Recharge.findByUserId(id, {
+                currentPage: parseInt(currentPage),
+                pageSize: parseInt(pageSize)
+            });
+
+            res.json(userService.formatPaginatedResponse(result, 'User recharges retrieved successfully'));
+        } catch (error) {
+            console.error('Get user recharges error:', error);
             res.status(500).json(userService.formatResponse(false, null, error.message));
         }
     });
@@ -120,11 +141,72 @@ function createUserRoutes(app) {
         try {
             const { days } = req.query;
             const users = await userService.getExpiringMemberships(parseInt(days) || 7);
-            
+
             res.json(userService.formatResponse(true, users, 'Expiring memberships retrieved successfully'));
         } catch (error) {
             console.error('Get expiring memberships error:', error);
             res.status(500).json(userService.formatResponse(false, null, error.message));
+        }
+    });
+
+    // PATCH /api/users/batch/role - 批量更新用户角色
+    router.patch('/batch/role', validateBody(['userIds', 'role']), async (req, res) => {
+        try {
+            const { userIds, role } = req.body;
+
+            if (!Array.isArray(userIds) || userIds.length === 0) {
+                return res.status(400).json(userService.formatResponse(false, null, 'User IDs array is required'));
+            }
+
+            if (!['admin', 'normal'].includes(role)) {
+                return res.status(400).json(userService.formatResponse(false, null, 'Invalid role'));
+            }
+
+            const result = await userService.batchUpdateRole(userIds, role);
+            res.json(userService.formatResponse(true, result, `Successfully updated ${result.affectedRows} users role to ${role}`));
+        } catch (error) {
+            console.error('Batch update user role error:', error);
+            res.status(500).json(userService.formatResponse(false, null, error.message));
+        }
+    });
+
+    // PATCH /api/users/batch/level - 批量更新用户等级
+    router.patch('/batch/level', validateBody(['userIds', 'level']), async (req, res) => {
+        try {
+            const { userIds, level } = req.body;
+
+            if (!Array.isArray(userIds) || userIds.length === 0) {
+                return res.status(400).json(userService.formatResponse(false, null, 'User IDs array is required'));
+            }
+
+            if (!['free', 'lite', 'pro'].includes(level)) {
+                return res.status(400).json(userService.formatResponse(false, null, 'Invalid level'));
+            }
+
+            const result = await userService.batchUpdateLevel(userIds, level);
+            res.json(userService.formatResponse(true, result, `Successfully updated ${result.affectedRows} users level to ${level}`));
+        } catch (error) {
+            console.error('Batch update user level error:', error);
+            res.status(500).json(userService.formatResponse(false, null, error.message));
+        }
+    });
+
+    // PATCH /api/users/:id/reset-password - 重置用户密码（管理员功能）
+    router.patch('/:id/reset-password', validateUUID, validateBody(['newPassword']), async (req, res) => {
+        try {
+            const { id } = req.params;
+            const { newPassword } = req.body;
+
+            if (!newPassword || newPassword.length < 6) {
+                return res.status(400).json(userService.formatResponse(false, null, 'New password must be at least 6 characters long'));
+            }
+
+            const user = await userService.updateUser(id, { password: newPassword });
+            res.json(userService.formatResponse(true, user, 'Password reset successfully'));
+        } catch (error) {
+            console.error('Reset user password error:', error);
+            const statusCode = error.message.includes('not found') ? 404 : 500;
+            res.status(statusCode).json(userService.formatResponse(false, null, error.message));
         }
     });
 

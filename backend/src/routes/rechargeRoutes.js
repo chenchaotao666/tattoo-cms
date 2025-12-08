@@ -64,6 +64,109 @@ class RechargeService extends BaseService {
             throw new Error(`Get recharges by status failed: ${error.message}`);
         }
     }
+
+    // 重写getAll方法，包含用户信息
+    async getAll(query = {}) {
+        try {
+            const pagination = this.normalizePaginationParams(query);
+            const sort = this.normalizeSortParams(query);
+            const filters = this.normalizeFilters(query);
+
+            // 构建包含用户信息的查询
+            let baseQuery = `
+                SELECT
+                    r.*,
+                    u.username as userName,
+                    u.email as userEmail
+                FROM ${this.model.tableName} r
+                LEFT JOIN users u ON r.userId = u.id
+            `;
+
+            const conditions = [];
+            const values = [];
+
+            // 构建过滤条件
+            if (Object.keys(filters).length > 0) {
+                Object.entries(filters).forEach(([key, value]) => {
+                    if (value !== undefined && value !== null && value !== '') {
+                        if (key === 'userName') {
+                            // 对用户名进行模糊搜索
+                            conditions.push(`u.username LIKE ?`);
+                            values.push(`%${value}%`);
+                        } else if (key === 'userEmail') {
+                            // 对用户邮箱进行模糊搜索
+                            conditions.push(`u.email LIKE ?`);
+                            values.push(`%${value}%`);
+                        } else if (key === 'orderId') {
+                            // 对订单号进行模糊搜索
+                            conditions.push(`r.orderId LIKE ?`);
+                            values.push(`%${value}%`);
+                        } else {
+                            // 其他字段精确匹配
+                            conditions.push(`r.${key} = ?`);
+                            values.push(value);
+                        }
+                    }
+                });
+            }
+
+            // 组装WHERE子句
+            if (conditions.length > 0) {
+                baseQuery += ` WHERE ${conditions.join(' AND ')}`;
+            }
+
+            // 添加排序
+            if (sort.sortBy) {
+                let sortBy = Array.isArray(sort.sortBy) ? sort.sortBy[0] : sort.sortBy;
+                let sortOrder = sort.sortOrder;
+                if (Array.isArray(sortOrder)) {
+                    sortOrder = sortOrder[0];
+                }
+                const order = sortOrder && String(sortOrder).toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
+                baseQuery += ` ORDER BY r.${sortBy} ${order}`;
+            } else {
+                // 默认按创建时间降序排序
+                baseQuery += ` ORDER BY r.createdAt DESC`;
+            }
+
+            // 获取总数（用于分页）
+            let totalCount = 0;
+            if (pagination.currentPage && pagination.pageSize) {
+                let countQuery = baseQuery.replace(
+                    /SELECT[\s\S]*?FROM/,
+                    'SELECT COUNT(*) as total FROM'
+                );
+                // 移除ORDER BY子句
+                countQuery = countQuery.replace(/ORDER BY.*$/, '');
+
+                const [countResult] = await this.model.db.execute(countQuery, values);
+                totalCount = countResult[0].total;
+
+                // 添加分页
+                const offset = (pagination.currentPage - 1) * pagination.pageSize;
+                baseQuery += ` LIMIT ${pagination.pageSize} OFFSET ${offset}`;
+            }
+
+            // 执行查询
+            const [rows] = await this.model.db.execute(baseQuery, values);
+
+            if (pagination.currentPage && pagination.pageSize) {
+                return {
+                    data: rows,
+                    pagination: {
+                        currentPage: parseInt(pagination.currentPage),
+                        pageSize: parseInt(pagination.pageSize),
+                        total: totalCount,
+                        totalPages: Math.ceil(totalCount / pagination.pageSize)
+                    }
+                };
+            } else {
+                return { data: rows };
+            }
+        } catch (error) {
+            throw new Error(`Get all recharges with user info failed: ${error.message}`);
+        }
+    }
 }
 
 // 创建充值路由

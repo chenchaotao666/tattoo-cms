@@ -8,26 +8,40 @@ class UserService extends BaseService {
     // 处理用户数据字段映射
     processUserData(userData) {
         if (!userData) return null;
-        
+
         // 字段映射：数据库字段 -> 前端期望字段
         const processed = { ...userData };
-        
+
         // 处理ID字段映射
         if (processed.id !== undefined) {
             processed.userId = processed.id;
         }
-        
+
         // 处理头像字段映射
         if (processed.avatarUrl !== undefined) {
             processed.avatar = processed.avatarUrl;
             delete processed.avatarUrl;
         }
-        
+
+        // 确保必要字段存在，如果不存在则设置默认值
+        if (processed.credits === undefined) {
+            processed.credits = 0;
+        }
+        if (processed.balance === undefined) {
+            processed.balance = 0;
+        }
+        if (processed.role === undefined) {
+            processed.role = 'normal';
+        }
+        if (processed.level === undefined) {
+            processed.level = 'free';
+        }
+
         // 移除敏感字段
         delete processed.passwordHash;
         delete processed.refreshToken;
         delete processed.resetPasswordToken;
-        
+
         return processed;
     }
 
@@ -282,7 +296,7 @@ class UserService extends BaseService {
             }
 
             const user = await this.model.findById(userId);
-            
+
             if (!user) {
                 throw new Error('User not found');
             }
@@ -291,6 +305,56 @@ class UserService extends BaseService {
             return this.processUserData(user);
         } catch (error) {
             throw new Error(`Get user profile failed: ${error.message}`);
+        }
+    }
+
+    // 批量更新用户角色
+    async batchUpdateRole(userIds, role) {
+        try {
+            if (!Array.isArray(userIds) || userIds.length === 0) {
+                throw new Error('User IDs array is required');
+            }
+
+            if (!['admin', 'normal'].includes(role)) {
+                throw new Error('Invalid role. Must be admin or normal');
+            }
+
+            const placeholders = userIds.map(() => '?').join(',');
+            const query = `UPDATE ${this.model.tableName} SET role = ?, updatedAt = NOW() WHERE id IN (${placeholders})`;
+            const values = [role, ...userIds];
+
+            const [result] = await this.model.db.execute(query, values);
+            return {
+                affectedRows: result.affectedRows,
+                updatedUsers: userIds
+            };
+        } catch (error) {
+            throw new Error(`Batch update user role failed: ${error.message}`);
+        }
+    }
+
+    // 批量更新用户等级
+    async batchUpdateLevel(userIds, level) {
+        try {
+            if (!Array.isArray(userIds) || userIds.length === 0) {
+                throw new Error('User IDs array is required');
+            }
+
+            if (!['free', 'lite', 'pro'].includes(level)) {
+                throw new Error('Invalid level. Must be free, lite, or pro');
+            }
+
+            const placeholders = userIds.map(() => '?').join(',');
+            const query = `UPDATE ${this.model.tableName} SET level = ?, updatedAt = NOW() WHERE id IN (${placeholders})`;
+            const values = [level, ...userIds];
+
+            const [result] = await this.model.db.execute(query, values);
+            return {
+                affectedRows: result.affectedRows,
+                updatedUsers: userIds
+            };
+        } catch (error) {
+            throw new Error(`Batch update user level failed: ${error.message}`);
         }
     }
 }

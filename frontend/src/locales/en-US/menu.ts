@@ -57,4 +57,7 @@ export default {
   'menu.内容管理.用户图片管理': 'User Images',
   'menu.内容管理.标签管理': 'Tags',
   'menu.内容管理.博客管理': 'Posts',
+  'menu.内容管理.用户管理': 'Users',
+  'menu.内容管理.充值管理': 'Recharges',
+  'menu.内容管理.提示词模板调试': 'Prompt Templates',
 };

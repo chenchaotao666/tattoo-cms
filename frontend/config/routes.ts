@@ -80,6 +80,16 @@ export default [
         component: './posts',
       },
       {
+        name: '用户管理',
+        path: '/content/users',
+        component: './users',
+      },
+      {
+        name: '充值管理',
+        path: '/content/recharges',
+        component: './recharges',
+      },
+      {
         name: '提示词模板调试',
         path: '/content/prompt-templates',
         component: './prompt-templates',
