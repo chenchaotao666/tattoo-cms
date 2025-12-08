@@ -101,6 +101,11 @@ class RechargeService extends BaseService {
                             // 对订单号进行模糊搜索
                             conditions.push(`r.orderId LIKE ?`);
                             values.push(`%${value}%`);
+                        } else if (key === 'method' && value.startsWith('!')) {
+                            // 排除特定支付方式
+                            const excludeMethod = value.substring(1);
+                            conditions.push(`r.method != ?`);
+                            values.push(excludeMethod);
                         } else {
                             // 其他字段精确匹配
                             conditions.push(`r.${key} = ?`);

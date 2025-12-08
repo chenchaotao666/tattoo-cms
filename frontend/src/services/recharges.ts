@@ -55,6 +55,8 @@ export async function queryRecharges(
       ),
       ...sortParams,
       ...filter,
+      // 过滤掉系统赠送类型
+      method: params.method || '!system',
     },
   });
 

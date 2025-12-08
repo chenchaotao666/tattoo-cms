@@ -131,19 +131,16 @@ const Recharges: React.FC = () => {
       valueEnum: {
         paypal: { text: 'PayPal' },
         stripe: { text: 'Stripe' },
-        system: { text: '系统赠送' },
       },
       render: (method) => {
         const colorMap = {
           paypal: '#1890ff',
           stripe: '#722ed1',
-          system: '#52c41a',
         };
         return (
           <Tag color={colorMap[method as string] || 'default'}>
             {method === 'paypal' ? 'PayPal' :
-             method === 'stripe' ? 'Stripe' :
-             method === 'system' ? '系统赠送' : method}
+             method === 'stripe' ? 'Stripe' : method}
           </Tag>
         );
       },
